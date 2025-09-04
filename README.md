@@ -6,6 +6,16 @@ Unlike typical web apps that rely on the browser print dialog, this project is d
 
 > Note: Modern browsers do not allow truly silent printing or reliable printer detection from the web page alone due to security restrictions. This project addresses that with a local helper service ("Print Agent") that the web app talks to, enabling automatic detection and printing without the OS dialog.
 
+## Recent Enhancements ✨
+
+**Print Job Status Tracking**: Enhanced the print system with real-time job tracking and status updates. Users can now monitor print job progress with visual feedback in the UI.
+
+**Tailwind v4 Compatibility**: Fixed OKLCH color function issues by implementing fallback colors for better compatibility with PDF generation and print preview.
+
+**Improved Readability**: Updated receipt preview with responsive pixel widths and larger text for enhanced readability, while maintaining authentic thermal receipt dimensions.
+
+**Enhanced PDF Generation**: Improved PDF generation with better aspect ratio maintenance, readable A4 sizing options, and capture-safe color handling.
+
 ## Tech Stack
 
 - **Frontend**: React 18 + Vite + TypeScript
@@ -17,11 +27,13 @@ Unlike typical web apps that rely on the browser print dialog, this project is d
 ## Key features
 
 - Receipt Composer: user input + optional fake data generation for line items, totals, store information, and timestamps
-- Live Preview: receipt layout (e.g., thermal 58/80mm) and standard page (A4/Letter) views
+- Live Preview: receipt layout (e.g., thermal 58/80mm) and standard page (A4/Letter) views with responsive text sizing
 - Automatic Printer Detection: show connected printers and their status
 - Zero-Click Printing on Submit: submit triggers print directly via the local Print Agent
+- **Print Job Status Tracking**: Real-time monitoring of print job progress with visual feedback
 - **Exact Thermal Sizing**: maintains authentic thermal receipt dimensions (58mm, 80mm, 112mm) on any printer
-- **PDF Download**: generates PDFs with exact thermal dimensions for archival
+- **Enhanced PDF Download**: generates PDFs with exact thermal dimensions and improved readability for archival
+- **Color Compatibility**: Tailwind v4 OKLCH color fallbacks for reliable PDF generation and printing
 - Fallback to System Print Dialog: if the agent is unavailable, degrade gracefully to window.print
 - Cross‑platform Target: macOS first; Windows/Linux planned
 
@@ -65,7 +77,8 @@ This project will implement (1) by default and provide extension points for (2) 
 
 - `GET  /status` → `{ ok: boolean, version: string }`
 - `GET  /printers` → `[{ name, isDefault, status }]`
-- `POST /print` → body `{ printerName, jobType: 'pdf' | 'raw', data: <base64>, options?: { copies, widthMm, heightMm } }`
+- `POST /print` → body `{ printerName, jobType: 'pdf' | 'raw', data: <base64>, options?: { copies, widthMm, heightMm } }` → returns `{ jobId, status }`
+- `GET  /jobs/:jobId` → `{ jobId, status: 'queued' | 'processing' | 'completed' | 'error', progress?: number }`
 - `POST /download-pdf` → downloads PDF with exact thermal dimensions
 - `WS   /events` → events: `printerConnected`, `printerDisconnected`, `jobAccepted`, `jobComplete`, `jobError`
 
@@ -88,24 +101,31 @@ Example payload for `/print` (PDF job):
 
 Prerequisites:
 - Node.js ≥ 18
-- pnpm ≥ 10
+- npm ≥ 9 (or pnpm ≥ 10 if preferred)
 - TypeScript knowledge
 - macOS: CUPS is included by default; ensure printing works from the OS (System Settings → Printers & Scanners)
 
 Install and run the web app:
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm run dev:app
+```
+
+For concurrent development (both app and print agent):
+
+```bash
+npm install
+npm run dev
 ```
 
 When running only the web app (before the agent exists), printing will fall back to the system print dialog.
 
 Print Agent (TypeScript):
 - Location: `print-agent/`
-- Build: `pnpm --filter print-agent build`
-- Start (dev): `pnpm --filter print-agent dev`
-- Start (prod): `pnpm --filter print-agent start`
+- Build: `cd print-agent && npm run build`
+- Start (dev): `cd print-agent && npm run dev`
+- Start (prod): `cd print-agent && npm start`
 - The frontend will detect the agent at startup and before printing; if not found, it will show a non-blocking warning and use the fallback.
 
 ## Thermal Receipt Sizing
@@ -148,15 +168,37 @@ This project maintains **exact thermal receipt dimensions** regardless of the ta
 ## Commands
 
 **Frontend (React + TypeScript + Tailwind)**:
-- Start dev server: `pnpm dev`
-- Build: `pnpm build`
-- Preview production build: `pnpm preview`
+- Start dev server: `npm run dev:app`
+- Start both app and agent: `npm run dev`
+- Build: `npm run build`
+- Preview production build: `npm run preview`
+- Lint: `npm run lint`
 
 **Print Agent (Node.js + TypeScript)**:
-- Build TypeScript: `pnpm --filter print-agent build`
-- Start dev (with hot reload): `pnpm --filter print-agent dev`
-- Start production: `pnpm --filter print-agent start`
-- Clean build: `pnpm --filter print-agent clean`
+- Build TypeScript: `cd print-agent && npm run build`
+- Start dev (with hot reload): `cd print-agent && npm run dev`
+- Start production: `cd print-agent && npm start`
+- Clean build: `cd print-agent && npm run clean`
+
+## Troubleshooting
+
+**Print Job Issues**:
+- If prints appear blank or with incorrect colors, ensure your system supports the target printer's paper size
+- For thermal printers, verify the printer is set to the correct paper width (58mm, 80mm, or 112mm)
+- Check print job status via the UI - failed jobs will show error details
+
+**Color Rendering Issues**:
+- Modern Tailwind CSS uses OKLCH colors which may not render in PDFs - the app includes fallback colors for compatibility
+- If you see color issues, check that the `.capture-safe` class is applied during PDF generation
+
+**Print Agent Connection**:
+- Ensure the print agent is running on `http://localhost:3333` (or your configured URL)
+- Check that CORS is properly configured if running on different ports
+- The app will gracefully fall back to browser print dialog if the agent is unavailable
+
+**Development Setup**:
+- If using pnpm, replace `npm` commands with `pnpm` equivalents
+- For concurrent development, ensure both frontend and print-agent dependencies are installed
 
 ## License
 

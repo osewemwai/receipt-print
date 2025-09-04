@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { getAgentStatus, getPrinters } from '../lib/printClient'
 
 const POLL_MS = Number(import.meta.env.VITE_AGENT_POLL_MS || 15000)
@@ -38,7 +38,7 @@ function PrinterStatus(): JSX.Element {
   const [failCount, setFailCount] = useState(0)
   const abortRef = useRef<AbortController | null>(null)
 
-  async function checkStatus() {
+  const checkStatus = useCallback(async () => {
     if (abortRef.current) abortRef.current.abort()
     abortRef.current = new AbortController()
     const signal = abortRef.current.signal
@@ -65,7 +65,7 @@ function PrinterStatus(): JSX.Element {
         setPrinters(null)
       }
     }
-  }
+  }, [failCount])
 
   useEffect(() => {
     checkStatus()
@@ -74,7 +74,7 @@ function PrinterStatus(): JSX.Element {
       clearInterval(interval)
       if (abortRef.current) abortRef.current.abort()
     }
-  }, [agentOk, failCount])
+  }, [agentOk, failCount, checkStatus])
 
   if (agentOk === null) {
     return (

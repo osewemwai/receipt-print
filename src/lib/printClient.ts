@@ -97,7 +97,7 @@ export async function getPrinters(
 export async function printPdf(
   { base64, printerName, copies = 1, dimensions }: PrintPdfParams,
   signal?: AbortSignal
-): Promise<any> {
+): Promise<{ ok: boolean; jobId?: string; error?: string }> {
   const body = {
     jobType: "pdf",
     data: base64,

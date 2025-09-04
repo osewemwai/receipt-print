@@ -80,7 +80,7 @@ function ReceiptForm() {
                 resolve();
                 return;
               }
-            } catch (e) {
+            } catch {
               // keep trying briefly
             }
             setTimeout(tick, 1500);

@@ -180,7 +180,7 @@ async function printPdfDarwin({
   try {
     const r = await execCmd(lpCmd);
     return { ok: true, command: lpCmd, detail: r.stdout.trim() };
-  } catch (err) {
+  } catch {
     // Fallback to lpr with same options
     const altArgs: string[] = [];
     if (printerName)

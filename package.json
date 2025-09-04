@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n APP,AGENT -c magenta,cyan \"pnpm run dev:app\" \"pnpm run dev:agent\"",
+    "dev": "concurrently -n APP,AGENT -c magenta,cyan \"npm run dev:app\" \"npm run dev:agent\"",
     "dev:app": "vite",
-    "dev:agent": "pnpm --filter print-agent dev",
+    "dev:agent": "cd print-agent && npm run dev",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -23,6 +23,8 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",
